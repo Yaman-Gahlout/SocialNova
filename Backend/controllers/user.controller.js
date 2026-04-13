@@ -171,7 +171,7 @@ const follow = async (req, res) => {
 
     const populatedNotification = await notification
       .findById(notification._id)
-      .populate("sender receiver", "username fullName profilePicture");
+      .populate("sender receiver post reel");
     const receiverSocketId = getSocketId(targetedUser._id.toString());
     if (receiverSocketId)
       io.to(receiverSocketId).emit("newNotification", populatedNotification);
