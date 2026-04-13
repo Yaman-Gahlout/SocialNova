@@ -50,7 +50,7 @@ export default function EditProfile() {
 
     try {
       const response = await axios.put(
-        `http://localhost:8000/users/edit`,
+        `https://socialnova-backend.onrender.com/users/edit`,
         data,
         { withCredentials: true },
       );

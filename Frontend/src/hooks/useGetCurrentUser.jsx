@@ -14,9 +14,12 @@ function useGetCurrentUser() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:8000/users", {
-          withCredentials: true,
-        });
+        const res = await axios.get(
+          "https://socialnova-backend.onrender.com/users",
+          {
+            withCredentials: true,
+          },
+        );
         setResponse(res);
         setLoading(false);
         console.log("Current User:", res);

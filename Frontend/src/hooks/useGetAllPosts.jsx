@@ -14,9 +14,12 @@ function useGetAllPosts() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:8000/posts", {
-          withCredentials: true,
-        });
+        const res = await axios.get(
+          "https://socialnova-backend.onrender.com/posts",
+          {
+            withCredentials: true,
+          },
+        );
         setResponse(res);
         setLoading(false);
         console.log("All Posts:", res);

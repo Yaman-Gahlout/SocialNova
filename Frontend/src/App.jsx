@@ -60,7 +60,7 @@ function App() {
 
   useEffect(() => {
     if (userData) {
-      const socketIO = io("http://localhost:8000", {
+      const socketIO = io("https://socialnova-backend.onrender.com", {
         query: {
           userId: userData._id,
         },

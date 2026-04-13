@@ -14,9 +14,12 @@ function useGetUserFollowing() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:8000/users/following", {
-          withCredentials: true,
-        });
+        const res = await axios.get(
+          "https://socialnova-backend.onrender.com/users/following",
+          {
+            withCredentials: true,
+          },
+        );
         setResponse(res);
         setLoading(false);
         console.log("All following:", res);

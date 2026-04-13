@@ -10,9 +10,12 @@ function UserProfile({ i }) {
   const dispatch = useDispatch();
   const clickHandler = async (username) => {
     try {
-      const res = await axios.get(`http://localhost:8000/users/${username}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `https://socialnova-backend.onrender.com/users/${username}`,
+        {
+          withCredentials: true,
+        },
+      );
 
       console.log(res.data.user);
       dispatch(setProfileData(res.data.user));

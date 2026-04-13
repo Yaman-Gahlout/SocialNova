@@ -17,9 +17,12 @@ function BottomNavbar() {
 
   const clickHandler = async (username) => {
     try {
-      const res = await axios.get(`http://localhost:8000/users/${username}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `https://socialnova-backend.onrender.com/users/${username}`,
+        {
+          withCredentials: true,
+        },
+      );
 
       dispatch(setProfileData(res.data.user));
       navigate("/profile");

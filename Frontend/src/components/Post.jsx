@@ -28,9 +28,12 @@ function Post({ post, profileData }) {
   // ================= PROFILE CLICK =================
   const clickHandler = async (username) => {
     try {
-      const res = await axios.get(`http://localhost:8000/users/${username}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `https://socialnova-backend.onrender.com/users/${username}`,
+        {
+          withCredentials: true,
+        },
+      );
       dispatch(setProfileData(res.data.user));
       navigate("/profile");
     } catch (err) {
@@ -50,7 +53,7 @@ function Post({ post, profileData }) {
   async function likeHandler(postId) {
     try {
       const response = await axios.post(
-        `http://localhost:8000/posts/like/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/like/${postId}`,
         {},
         { withCredentials: true },
       );
@@ -89,7 +92,7 @@ function Post({ post, profileData }) {
   async function saveHandler(postId) {
     try {
       const response = await axios.post(
-        `http://localhost:8000/posts/save/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/save/${postId}`,
         {},
         { withCredentials: true },
       );
@@ -135,7 +138,7 @@ function Post({ post, profileData }) {
       if (!message) return;
 
       const res = await axios.post(
-        `http://localhost:8000/posts/comment/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/comment/${postId}`,
         { message },
         { withCredentials: true },
       );
@@ -181,7 +184,7 @@ function Post({ post, profileData }) {
   async function followHandler(targetUserId) {
     try {
       const response = await axios.post(
-        `http://localhost:8000/users/follow/${targetUserId}`,
+        `https://socialnova-backend.onrender.com/users/follow/${targetUserId}`,
         {},
         { withCredentials: true },
       );

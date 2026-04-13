@@ -27,9 +27,12 @@ function Feed() {
   // ================= PROFILE CLICK =================
   const clickHandler = async (username) => {
     try {
-      const res = await axios.get(`http://localhost:8000/users/${username}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `https://socialnova-backend.onrender.com/users/${username}`,
+        {
+          withCredentials: true,
+        },
+      );
       dispatch(setProfileData(res.data.user));
       navigate("/profile");
     } catch (err) {
@@ -49,7 +52,7 @@ function Feed() {
   async function likeHandler(postId) {
     try {
       const response = await axios.post(
-        `http://localhost:8000/posts/like/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/like/${postId}`,
         {},
         { withCredentials: true },
       );
@@ -88,7 +91,7 @@ function Feed() {
   async function saveHandler(postId) {
     try {
       const response = await axios.post(
-        `http://localhost:8000/posts/save/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/save/${postId}`,
         {},
         { withCredentials: true },
       );
@@ -134,7 +137,7 @@ function Feed() {
       if (!message) return;
 
       const res = await axios.post(
-        `http://localhost:8000/posts/comment/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/comment/${postId}`,
         { message },
         { withCredentials: true },
       );

@@ -21,7 +21,7 @@ export default function Login() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:8000/auth/login",
+        "https://socialnova-backend.onrender.com/auth/login",
         form,
         { withCredentials: true },
       );

@@ -16,9 +16,12 @@ function Navbar() {
   const clickHandler = async (username) => {
     try {
       console.log("handler called");
-      const res = await axios.get(`http://localhost:8000/users/${username}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `https://socialnova-backend.onrender.com/users/${username}`,
+        {
+          withCredentials: true,
+        },
+      );
       console.log("button clicked");
       console.log("user profile data : ", res.data.user);
       dispatch(setProfileData(res.data.user));
@@ -31,7 +34,7 @@ function Navbar() {
   const markAsReadHandler = async (notificationId) => {
     try {
       await axios.put(
-        "http://localhost:8000/users/notifications",
+        "https://socialnova-backend.onrender.com/users/notifications",
         {
           notificationId,
         },

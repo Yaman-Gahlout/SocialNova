@@ -46,7 +46,7 @@ export default function CreatePost() {
       }
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8000/posts",
+        "https://socialnova-backend.onrender.com/posts",
         formData,
         {
           withCredentials: true,

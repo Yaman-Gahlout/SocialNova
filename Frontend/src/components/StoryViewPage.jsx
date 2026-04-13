@@ -28,7 +28,7 @@ function StoryViewPage() {
     const fetchStory = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:8000/stories/${username}`,
+          `https://socialnova-backend.onrender.com/stories/${username}`,
           { withCredentials: true },
         );
 
@@ -158,7 +158,6 @@ function StoryViewPage() {
             ref={videoRef}
             src={story.media}
             autoPlay
-            muted
             playsInline
             onTimeUpdate={videoProgressHandler}
             className="h-full w-full object-cover"

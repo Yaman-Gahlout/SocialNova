@@ -50,9 +50,12 @@ function Reel({ reel, userData, profileImage, postsData }) {
 
   const openProfile = async (username) => {
     try {
-      const res = await axios.get(`http://localhost:8000/users/${username}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `https://socialnova-backend.onrender.com/users/${username}`,
+        {
+          withCredentials: true,
+        },
+      );
 
       dispatch(setProfileData(res.data.user));
       navigate("/profile");
@@ -66,7 +69,7 @@ function Reel({ reel, userData, profileImage, postsData }) {
   async function likeHandler(postId) {
     try {
       const res = await axios.post(
-        `http://localhost:8000/posts/like/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/like/${postId}`,
         {},
         { withCredentials: true },
       );
@@ -102,7 +105,7 @@ function Reel({ reel, userData, profileImage, postsData }) {
   async function saveHandler(postId) {
     try {
       const res = await axios.post(
-        `http://localhost:8000/posts/save/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/save/${postId}`,
         {},
         { withCredentials: true },
       );
@@ -140,7 +143,7 @@ function Reel({ reel, userData, profileImage, postsData }) {
   async function followHandler(targetUserId) {
     try {
       const res = await axios.post(
-        `http://localhost:8000/users/follow/${targetUserId}`,
+        `https://socialnova-backend.onrender.com/users/follow/${targetUserId}`,
         {},
         { withCredentials: true },
       );
@@ -177,7 +180,7 @@ function Reel({ reel, userData, profileImage, postsData }) {
       if (!commentText.trim()) return;
 
       const res = await axios.post(
-        `http://localhost:8000/posts/comment/${postId}`,
+        `https://socialnova-backend.onrender.com/posts/comment/${postId}`,
         { message: commentText },
         { withCredentials: true },
       );

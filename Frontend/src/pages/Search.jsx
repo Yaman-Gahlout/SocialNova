@@ -29,7 +29,7 @@ export default function SearchPage() {
     try {
       setLoading(true);
       const res = await axios.get(
-        `http://localhost:8000/users/search?query=${searchQuery}`,
+        `https://socialnova-backend.onrender.com/users/search?query=${searchQuery}`,
         { withCredentials: true },
       );
       console.log("Search results:", res.data.users);
@@ -43,9 +43,12 @@ export default function SearchPage() {
 
   const clickHandler = async (username) => {
     try {
-      const res = await axios.get(`http://localhost:8000/users/${username}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `https://socialnova-backend.onrender.com/users/${username}`,
+        {
+          withCredentials: true,
+        },
+      );
       dispatch(setProfileData(res.data.user));
       navigate("/profile");
     } catch (err) {

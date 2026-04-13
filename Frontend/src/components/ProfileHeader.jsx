@@ -31,9 +31,12 @@ function ProfileHeader() {
 
   async function logoutHandler() {
     try {
-      const res = await axios.get("http://localhost:8000/auth/logout", {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        "https://socialnova-backend.onrender.com/auth/logout",
+        {
+          withCredentials: true,
+        },
+      );
       console.log(res);
       toast.success("Logged out successfully");
       navigate("/login");
@@ -45,7 +48,7 @@ function ProfileHeader() {
   async function followHandler(targetUserId) {
     try {
       const response = await axios.post(
-        `http://localhost:8000/users/follow/${targetUserId}`,
+        `https://socialnova-backend.onrender.com/users/follow/${targetUserId}`,
         {},
         { withCredentials: true },
       );

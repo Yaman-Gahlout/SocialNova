@@ -22,7 +22,7 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8000/auth/sendOtp",
+        "https://socialnova-backend.onrender.com/auth/sendOtp",
         { email },
         { withCredentials: true },
       );
@@ -41,7 +41,7 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8000/auth/verifyOtp",
+        "https://socialnova-backend.onrender.com/auth/verifyOtp",
         { email, otp },
         { withCredentials: true },
       );
@@ -65,7 +65,7 @@ export default function ForgotPassword() {
       }
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8000/auth/resetPassword",
+        "https://socialnova-backend.onrender.com/auth/resetPassword",
         { email, newPassword, confirmPassword },
         { withCredentials: true },
       );

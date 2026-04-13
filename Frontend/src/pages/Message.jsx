@@ -58,7 +58,7 @@ export default function SocialNovaMessages() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/messages/",
+        "https://socialnova-backend.onrender.com/messages/",
         {
           receiverId: selectedUser._id,
           message: text,
@@ -84,7 +84,7 @@ export default function SocialNovaMessages() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/messages/",
+        "https://socialnova-backend.onrender.com/messages/",
         formData,
         {
           withCredentials: true,
@@ -101,7 +101,7 @@ export default function SocialNovaMessages() {
   const getMessages = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/messages/${selectedUser._id}`,
+        `https://socialnova-backend.onrender.com/messages/${selectedUser._id}`,
         { withCredentials: true },
       );
       dispatch(setMessages(response.data.messages || []));

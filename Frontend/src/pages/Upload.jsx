@@ -73,7 +73,7 @@ export default function Upload() {
             ? "stories"
             : "reels";
       const response = await axios.post(
-        `http://localhost:8000/${url}`,
+        `https://socialnova-backend.onrender.com/${url}`,
         formData,
         {
           withCredentials: true,

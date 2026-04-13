@@ -15,7 +15,7 @@ function useGetOldChatUsers() {
       try {
         setLoading(true);
         const res = await axios.get(
-          "http://localhost:8000/messages/prevUsers",
+          "https://socialnova-backend.onrender.com/messages/prevUsers",
           {
             withCredentials: true,
           },
