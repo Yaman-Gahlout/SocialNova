@@ -10,6 +10,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { app, server } = require("./socket");
 require("dotenv").config();
+const path = require("path");
 
 app.use(
   cors({
@@ -17,6 +18,7 @@ app.use(
     credentials: true,
   }),
 );
+app.use(express.static(path.join(__dirname, "../Frontend/dist")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -32,10 +34,6 @@ server.listen(process.env.PORT, () => {
 });
 
 connectDB();
-
-const path = require("path");
-
-app.use(express.static(path.join(__dirname, "../Frontend/dist")));
 
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../Frontend/dist", "index.html"));
