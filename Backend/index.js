@@ -1,0 +1,34 @@
+const express = require("express");
+const connectDB = require("./utils/database");
+const authRoute = require("./routes/auth.route");
+const userRoute = require("./routes/user.route");
+const postRoute = require("./routes/post.route");
+const reelRoute = require("./routes/reel.route");
+const storyRoute = require("./routes/story.route");
+const messageRoute = require("./routes/message.route");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const { app, server } = require("./socket");
+require("dotenv").config();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use("/auth", authRoute);
+app.use("/users", userRoute);
+app.use("/posts", postRoute);
+app.use("/reels", reelRoute);
+app.use("/stories", storyRoute);
+app.use("/messages", messageRoute);
+
+server.listen(process.env.PORT, () => {
+  console.log(`Server is running on port ${process.env.PORT}`);
+});
+
+connectDB();
