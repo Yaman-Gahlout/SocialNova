@@ -35,6 +35,6 @@ server.listen(process.env.PORT, () => {
 
 connectDB();
 
-app.get("*", (req, res) => {
+app.get((req, res) => {
   res.sendFile(path.resolve(__dirname, "../Frontend/dist", "index.html"));
 });
