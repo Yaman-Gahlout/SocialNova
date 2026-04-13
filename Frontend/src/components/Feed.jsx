@@ -177,7 +177,7 @@ function Feed() {
   async function followHandler(targetUserId) {
     try {
       const response = await axios.post(
-        `http://localhost:8000/users/follow/${targetUserId}`,
+        `https://socialnova-backend.onrender.com/users/follow/${targetUserId}`,
         {},
         { withCredentials: true },
       );
