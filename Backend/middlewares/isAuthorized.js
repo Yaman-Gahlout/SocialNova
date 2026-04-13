@@ -3,6 +3,7 @@ require("dotenv").config();
 
 const isAuthorized = (req, res, next) => {
   try {
+    console.log("cookies:", req.cookies);
     const token = req.cookies.token;
 
     if (!token) {
