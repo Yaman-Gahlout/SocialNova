@@ -32,3 +32,11 @@ server.listen(process.env.PORT, () => {
 });
 
 connectDB();
+
+const path = require("path");
+
+app.use(express.static(path.join(__dirname, "../Frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../Frontend/dist", "index.html"));
+});
