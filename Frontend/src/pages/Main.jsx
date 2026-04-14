@@ -10,7 +10,7 @@ export default function Main() {
         <h1 className="text-2xl font-bold bg-linear-to-r from-[#8B5CF6] to-[#22D3EE] bg-clip-text text-transparent">
           SocialNova
         </h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 max-md:hidden">
           <button
             onClick={() => navigate("/login")}
             className="px-4 cursor-pointer py-2 rounded-xl bg-[#8B5CF6] hover:bg-[#7c4ee6] transition"

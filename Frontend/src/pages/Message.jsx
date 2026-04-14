@@ -232,7 +232,7 @@ export default function SocialNovaMessages() {
                       {msg?.image && (
                         <img
                           src={msg.image}
-                          className="max-h-[250px] w-full object-cover"
+                          className="max-h-[200px] sm:max-h-[250px] w-full object-cover rounded-xl"
                         />
                       )}
                     </div>
@@ -259,7 +259,7 @@ export default function SocialNovaMessages() {
                       {msg?.image && (
                         <img
                           src={msg.image}
-                          className="max-h-[250px] w-full object-cover"
+                          className="max-h-[200px] sm:max-h-[250px] w-full object-cover rounded-xl"
                         />
                       )}
                     </div>
