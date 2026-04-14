@@ -4,9 +4,25 @@ const express = require("express");
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://socialnova-6uat.onrender.com",
+];
+
 const io = new Server(server, {
   cors: {
-    origin: "https://socialnova-6uat.onrender.com",
+    origin: (origin, callback) => {
+      console.log("Socket Origin:", origin);
+
+      // allow non-browser clients (Postman, mobile)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Socket CORS blocked: " + origin));
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
