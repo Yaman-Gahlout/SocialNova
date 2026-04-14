@@ -142,7 +142,7 @@ export default function SocialNovaMessages() {
   };
 
   return (
-    <div className="h-screen w-full bg-[#020617] text-white flex">
+    <div className="h-screen w-screen bg-[#020617] text-white flex">
       {/* ===== USERS LIST (MOBILE + DESKTOP) ===== */}
       <div
         className={`${
@@ -274,7 +274,7 @@ export default function SocialNovaMessages() {
         </div>
 
         {/* INPUT */}
-        <div className="p-4 border-t border-slate-800 flex items-center gap-3">
+        <div className="p-4 w-full border-t border-slate-800 flex items-center gap-3">
           <button
             onClick={() => fileRef.current.click()}
             className="p-2 bg-[#0F172A] rounded-xl"
@@ -298,7 +298,7 @@ export default function SocialNovaMessages() {
 
           <button
             onClick={sendMessage}
-            className="px-4 py-2 bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black rounded-xl"
+            className="px-4 py-2 max-md:px-3 bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black rounded-xl"
           >
             <FiSend />
           </button>
