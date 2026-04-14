@@ -1,21 +1,22 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiSearch,
   FiSend,
   FiMoreVertical,
   FiImage,
-  FiSmile,
   FiArrowLeft,
 } from "react-icons/fi";
 import profileImage from "../assets/userImage.avif";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setMessages, setSelectedUser } from "../redux/slice/message.slice";
+import BottomNavbar from "../components/BottomNavbar";
 
 export default function SocialNovaMessages() {
   const navigate = useNavigate();
   const [text, setText] = useState("");
+  const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const fileRef = useRef(null);
 
   const dispatch = useDispatch();
@@ -28,21 +29,46 @@ export default function SocialNovaMessages() {
   const onlineUsers = useSelector((state) => state.socket.onlineUsers);
   const oldChatUsers = useSelector((state) => state.message.oldChatUsers);
   const socket = useSelector((state) => state.socket.socket);
-  // ✅ FIX: fetch messages when user changes
+
+  // ✅ MERGE USERS (NO DUPLICATES)
+  const allUsers = useMemo(() => {
+    const map = new Map();
+
+    userFollowing.forEach((u) => map.set(u._id, u));
+    oldChatUsers.forEach((u) => {
+      if (!map.has(u._id)) map.set(u._id, u);
+    });
+
+    return Array.from(map.values());
+  }, [userFollowing, oldChatUsers]);
+
+  // ✅ FETCH MESSAGES
   useEffect(() => {
     if (selectedUser?._id) {
       getMessages();
     }
   }, [selectedUser]);
 
+  // ✅ SOCKET LISTENER (FIXED)
   useEffect(() => {
-    socket?.on("newMessage", (message) => {
+    if (!socket) return;
+
+    const handleNewMessage = (message) => {
       dispatch(setMessages([...messages, message]));
-    });
-    return () => {
-      socket?.off("newMessage");
     };
-  }, [messages, setMessages]);
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [socket, messages]);
+
+  // ✅ AUTO SCROLL
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const sendMessage = async () => {
     if (!text.trim() || !selectedUser?._id) return;
 
@@ -50,9 +76,9 @@ export default function SocialNovaMessages() {
       _id: Date.now(),
       message: text,
       sender: userData._id,
+      createdAt: new Date(),
     };
 
-    // ✅ optimistic UI
     dispatch(setMessages([...messages, newMsg]));
     setText("");
 
@@ -66,8 +92,6 @@ export default function SocialNovaMessages() {
         { withCredentials: true },
       );
 
-      console.log(response);
-      // replace with actual response
       dispatch(setMessages([...messages, response.data.message]));
     } catch (err) {
       console.log(err);
@@ -86,12 +110,9 @@ export default function SocialNovaMessages() {
       const response = await axios.post(
         "https://socialnova-backend.onrender.com/messages/",
         formData,
-        {
-          withCredentials: true,
-        },
+        { withCredentials: true },
       );
 
-      console.log(response);
       dispatch(setMessages([...messages, response.data.message]));
     } catch (err) {
       console.log(err);
@@ -110,115 +131,82 @@ export default function SocialNovaMessages() {
     }
   };
 
-  // useEffect(
-  //   () => {
-  //     scrollRef.current.scrollIntoView({ behavior: "smooth" });
-  //   },
-  //   [messages.message],
-  //   [messages.image],
-  // );
+  // ✅ TIME FORMAT
+  const formatTime = (time) => {
+    if (!time) return "";
+    const date = new Date(time);
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <div className="h-screen w-full bg-[#020617] text-white flex">
-      {/* Sidebar */}
-      <div className="hidden md:flex flex-col w-[340px] border-r border-slate-800 bg-[#020617]">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <h2
-            onClick={() => navigate("/home")}
-            className="text-xl cursor-pointer font-semibold bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] bg-clip-text text-transparent"
-          >
-            SocialNova
-          </h2>
-          <FiMoreVertical />
-        </div>
-
-        <div className="p-3">
-          <div className="flex items-center gap-2 bg-[#0F172A] px-3 py-2 rounded-xl border border-slate-800">
-            <FiSearch className="text-slate-400" />
-            <input
-              placeholder="Search conversations"
-              className="bg-transparent outline-none text-sm w-full"
-            />
-          </div>
+      {/* ===== USERS LIST (MOBILE + DESKTOP) ===== */}
+      <div
+        className={`${
+          isMobileChatOpen ? "hidden" : "flex"
+        } md:flex flex-col w-full md:w-[340px] border-r border-slate-800`}
+      >
+        <div className="p-4 border-b border-slate-800">
+          <h2 className="text-xl font-semibold">Chats</h2>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {userFollowing.map((user) => (
+          {allUsers.map((user) => (
             <div
-              key={user.id}
-              onClick={() => dispatch(setSelectedUser(user))}
-              className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition hover:bg-[#0F172A]`}
+              key={user._id}
+              onClick={() => {
+                dispatch(setSelectedUser(user));
+                setIsMobileChatOpen(true);
+              }}
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#0F172A]"
             >
               <div className="relative">
                 <img
                   src={user?.profilePicture || profileImage}
-                  className="w-11 h-11 rounded-full object-cover"
+                  className="w-11 h-11 rounded-full"
                 />
                 {onlineUsers.includes(user._id) && (
-                  <span className="absolute bottom-0 -right-1 w-4 h-4 bg-blue-600 border-2 border-[#020617] rounded-full " />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#020617]" />
                 )}
               </div>
 
-              <div className="flex-1">
+              <div>
                 <p className="text-sm font-medium">{user.username}</p>
-                <p className="text-xs text-slate-400 truncate">
-                  {onlineUsers.includes(user._id) ? (
-                    <span className="text-blue-500">Online</span>
-                  ) : (
-                    <span className="text-slate-400">Offline</span>
-                  )}
-                </p>
-              </div>
-            </div>
-          ))}
-          {console.log("old chat users : ", oldChatUsers)}
-          {oldChatUsers.map((user) => (
-            <div
-              key={user.id}
-              onClick={() => dispatch(setSelectedUser(user))}
-              className={`flex ${userData.following.includes(user._id) ? "hidden" : ""} items-center gap-3 px-4 py-3 cursor-pointer transition hover:bg-[#0F172A]`}
-            >
-              <div className="relative">
-                <img
-                  src={user?.profilePicture || profileImage}
-                  className="w-11 h-11 rounded-full object-cover"
-                />
-                {onlineUsers.includes(user._id) && (
-                  <span className="absolute bottom-0 -right-1 w-4 h-4 bg-blue-600 border-2 border-[#020617] rounded-full " />
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{user.username}</p>
-                <p className="text-xs text-slate-400 truncate">
-                  {onlineUsers.includes(user._id) ? (
-                    <span className="text-blue-500">Online</span>
-                  ) : (
-                    <span className="text-slate-400">Offline</span>
-                  )}
+                <p className="text-xs text-slate-400">
+                  {onlineUsers.includes(user._id) ? "Online" : "Offline"}
                 </p>
               </div>
             </div>
           ))}
         </div>
+        <BottomNavbar />
       </div>
-      <div className="flex flex-col flex-1">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-[#020617]">
+
+      {/* ===== CHAT SECTION ===== */}
+      <div
+        className={`flex flex-col flex-1 ${
+          !selectedUser ? "hidden md:flex" : ""
+        } ${!isMobileChatOpen ? "hidden md:flex" : "flex"}`}
+      >
+        {/* HEADER */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
+            {/* MOBILE BACK */}
             <button
-              onClick={() => navigate("/home")}
-              className="p-2 rounded-xl bg-[#0F172A] border border-slate-800 hover:bg-slate-800 transition"
+              onClick={() => setIsMobileChatOpen(false)}
+              className="md:hidden p-2 bg-[#0F172A] rounded-lg"
             >
               <FiArrowLeft />
             </button>
+
             <img
-              src={
-                selectedUser?.profilePicture
-                  ? selectedUser?.profilePicture
-                  : profileImage
-              }
-              className="w-10 h-10 rounded-full object-cover"
+              src={selectedUser?.profilePicture || profileImage}
+              className="w-10 h-10 rounded-full"
             />
+
             <div>
               <p className="font-medium">{selectedUser?.fullName || "User"}</p>
               <p className="text-sm text-blue-400">
@@ -230,47 +218,14 @@ export default function SocialNovaMessages() {
           <FiMoreVertical />
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-4 bg-gradient-to-b from-[#020617] to-[#020617]/70">
-          {messages.length > 0 &&
-            messages.map((msg) => (
-              <div key={msg._id}>
-                {msg.sender === userData?._id ? (
-                  <div
-                    ref={scrollRef}
-                    className={"flex gap-2 justify-end items-baseline"}
-                  >
-                    <div className="max-w-[70%] rounded-2xl overflow-hidden shadow-lg text-sm bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black">
-                      {msg?.message && typeof msg.message === "string" && (
-                        <div className="px-4 py-2">{msg.message}</div>
-                      )}
-                      {msg?.image && (
-                        <img
-                          src={msg?.image}
-                          className="max-h-[250px] w-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <img
-                      src={
-                        userData?.profilePicture
-                          ? userData?.profilePicture
-                          : profileImage
-                      }
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className={"flex gap-2 justify-start items-baseline"}>
-                    <img
-                      src={
-                        selectedUser?.profilePicture
-                          ? selectedUser?.profilePicture
-                          : profileImage
-                      }
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                    <div className="max-w-[70%] rounded-2xl overflow-hidden shadow-lg text-sm bg-[#0F172A] border border-slate-800">
+        {/* MESSAGES */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-4">
+          {messages.map((msg) => (
+            <div key={msg._id}>
+              {msg.sender === userData?._id ? (
+                <div ref={scrollRef} className="flex gap-2 justify-end">
+                  <div className="text-right flex flex-col items-end gap-2">
+                    <div className=" rounded-xl overflow-hidden shadow-lg text-sm bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black">
                       {msg?.message && (
                         <div className="px-4 py-2">{msg.message}</div>
                       )}
@@ -281,27 +236,48 @@ export default function SocialNovaMessages() {
                         />
                       )}
                     </div>
+                    <span className="text-xs text-slate-400">
+                      {formatTime(msg.createdAt)}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
-        </div>
-
-        <div>
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center mb-25 gap-4 mt-20">
-              <p className="text-slate-400 text-2xl opacity-65">
-                No messages yet
-              </p>
+                  <img
+                    src={userData?.profilePicture || profileImage}
+                    className="w-6 h-6 rounded-full"
+                  />
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <img
+                    src={selectedUser?.profilePicture || profileImage}
+                    className="w-6 h-6 rounded-full"
+                  />
+                  <div className="flex flex-col items-start gap-2">
+                    <div className=" rounded-xl overflow-hidden shadow-lg text-sm bg-[#0F172A] border border-slate-800">
+                      {msg?.message && (
+                        <div className="px-4 py-2">{msg.message}</div>
+                      )}
+                      {msg?.image && (
+                        <img
+                          src={msg.image}
+                          className="max-h-[250px] w-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <span className="text-xs text-slate-400">
+                      {formatTime(msg.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          ))}
         </div>
 
-        {/* Input */}
-        <div className="p-4 border-t border-slate-800 flex items-center gap-3 bg-[#020617]">
+        {/* INPUT */}
+        <div className="p-4 border-t border-slate-800 flex items-center gap-3">
           <button
             onClick={() => fileRef.current.click()}
-            className="p-2 rounded-xl bg-[#0F172A] border border-slate-800 hover:bg-slate-800 transition"
+            className="p-2 bg-[#0F172A] rounded-xl"
           >
             <FiImage />
           </button>
@@ -309,21 +285,20 @@ export default function SocialNovaMessages() {
           <input
             ref={fileRef}
             type="file"
-            accept="image/*"
-            onChange={sendImage}
             className="hidden"
+            onChange={sendImage}
           />
 
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
+            className="flex-1 bg-[#0F172A] px-4 py-2 rounded-xl"
             placeholder="Message..."
-            className="flex-1 bg-[#0F172A] border border-slate-800 px-4 py-2 rounded-xl outline-none"
           />
 
           <button
             onClick={sendMessage}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black font-medium flex items-center gap-2 hover:scale-105 transition"
+            className="px-4 py-2 bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black rounded-xl"
           >
             <FiSend />
           </button>

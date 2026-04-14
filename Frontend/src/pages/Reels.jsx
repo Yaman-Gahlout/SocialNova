@@ -54,15 +54,27 @@ function Reels() {
       </div>
       {/* Reels Container */}
       <div className="w-full max-w-[480px] h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
-        {reels.map((reel) => (
-          <Reel
-            key={reel._id}
-            reel={reel}
-            userData={userData}
-            profileImage={profileImage}
-            postsData={postsData}
-          />
-        ))}
+        {reels.length > 0 &&
+          reels.map((reel) => (
+            <Reel
+              key={reel._id}
+              reel={reel}
+              userData={userData}
+              profileImage={profileImage}
+              postsData={postsData}
+            />
+          ))}
+        {reels.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-screen gap-4">
+            <h2 className="text-2xl text-white">No Reels Available</h2>
+            <button
+              onClick={() => navigate("/home")}
+              className="px-5 py-2 mt-[40px] rounded-xl text-sm font-semibold bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black hover:scale-105 transition shadow-lg"
+            >
+              Go to Home
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
