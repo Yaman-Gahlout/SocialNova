@@ -35,8 +35,16 @@ const suggestedUsers = async (req, res) => {
     const users = await User.find({ _id: { $ne: req.userId } }).select(
       "-password",
     );
+    const currentUser = await User.findById(req.userId);
+
+    const followingIds = currentUser.following.map((id) => id.toString());
+    const suggested = users.filter(
+      (user) =>
+        !followingIds.includes(user._id.toString()) &&
+        user._id.toString() !== req.userId,
+    );
     return res.status(200).json({
-      users,
+      users: suggested,
     });
   } catch (e) {
     return res.status(500).json({
