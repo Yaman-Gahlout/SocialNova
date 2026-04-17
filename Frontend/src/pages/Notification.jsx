@@ -3,6 +3,7 @@ import { FiHeart, FiUserPlus, FiMessageCircle } from "react-icons/fi";
 import BottomNavbar from "../components/BottomNavbar";
 import { useSelector } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
+import useGetAllNotifications from "../hooks/useGetAllNotifications";
 
 function NotificationPage() {
   const getIcon = (type) => {
@@ -20,6 +21,7 @@ function NotificationPage() {
 
   const notifications = useSelector((state) => state.user.notifications);
 
+  useGetAllNotifications();
   return (
     <div className="min-h-screen bg-[#020617] text-white p-4 ">
       <div className="max-w-xl mx-auto mb-[60px]">

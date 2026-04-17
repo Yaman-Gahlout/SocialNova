@@ -18,7 +18,6 @@ export default function SocialNovaDashboard() {
   const { loading: allPostsLoading } = useGetAllPosts();
   useGetUserFollowing();
   useGetOldChatUsers();
-  useGetAllNotifications();
 
   const userData = useSelector((state) => state.user.userData);
 

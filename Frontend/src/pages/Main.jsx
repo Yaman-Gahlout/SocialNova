@@ -31,7 +31,7 @@ export default function Main() {
         <h2 className="text-5xl md:text-6xl font-bold mb-6">
           Welcome to <span className="text-[#22D3EE]">SocialNova</span>
         </h2>
-        <p className="max-w-5xl mx-auto text-gray-300 mb-8">
+        <p className="max-w-5xl mx-auto text-gray-300 mb-8 opacity-75">
           Connect with people who inspire you, share your favorite moments
           effortlessly, and explore a vibrant world of stories that keep you
           engaged, entertained, and always in the loop.

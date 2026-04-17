@@ -101,7 +101,7 @@ export default function Upload() {
 
   // ================= UI =================
   return (
-    <div className="min-h-screen bg-[#020617] text-white">
+    <div className="min-h-screen bg-[#020617] text-white pb-6">
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* ===== HEADER ===== */}
         <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] bg-clip-text text-transparent">

@@ -12,6 +12,12 @@ function Story() {
   useGetUserFollowing();
 
   const isStorySeen = (stories) => {
+    console.log(
+      "Checking if story is seen. UserData:",
+      userData,
+      "Stories:",
+      stories,
+    );
     if (!stories || stories.length === 0) return true;
 
     return stories.every((story) =>

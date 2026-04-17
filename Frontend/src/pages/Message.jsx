@@ -8,6 +8,7 @@ import {
   FiArrowLeft,
 } from "react-icons/fi";
 import profileImage from "../assets/userImage.avif";
+import { MdKeyboardBackspace } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setMessages, setSelectedUser } from "../redux/slice/message.slice";
@@ -33,23 +34,19 @@ export default function SocialNovaMessages() {
   // ✅ MERGE USERS (NO DUPLICATES)
   const allUsers = useMemo(() => {
     const map = new Map();
-
     userFollowing.forEach((u) => map.set(u._id, u));
     oldChatUsers.forEach((u) => {
       if (!map.has(u._id)) map.set(u._id, u);
     });
-
     return Array.from(map.values());
   }, [userFollowing, oldChatUsers]);
 
   // ✅ FETCH MESSAGES
   useEffect(() => {
-    if (selectedUser?._id) {
-      getMessages();
-    }
+    if (selectedUser?._id) getMessages();
   }, [selectedUser]);
 
-  // ✅ SOCKET LISTENER (FIXED)
+  // ✅ SOCKET LISTENER (SAFE)
   useEffect(() => {
     if (!socket) return;
 
@@ -58,10 +55,7 @@ export default function SocialNovaMessages() {
     };
 
     socket.on("newMessage", handleNewMessage);
-
-    return () => {
-      socket.off("newMessage", handleNewMessage);
-    };
+    return () => socket.off("newMessage", handleNewMessage);
   }, [socket, messages]);
 
   // ✅ AUTO SCROLL
@@ -83,7 +77,7 @@ export default function SocialNovaMessages() {
     setText("");
 
     try {
-      const response = await axios.post(
+      const res = await axios.post(
         "https://socialnova-backend.onrender.com/messages/",
         {
           receiverId: selectedUser._id,
@@ -92,7 +86,7 @@ export default function SocialNovaMessages() {
         { withCredentials: true },
       );
 
-      dispatch(setMessages([...messages, response.data.message]));
+      dispatch(setMessages([...messages, res.data.message]));
     } catch (err) {
       console.log(err);
     }
@@ -107,13 +101,13 @@ export default function SocialNovaMessages() {
     formData.append("receiverId", selectedUser._id);
 
     try {
-      const response = await axios.post(
+      const res = await axios.post(
         "https://socialnova-backend.onrender.com/messages/",
         formData,
         { withCredentials: true },
       );
 
-      dispatch(setMessages([...messages, response.data.message]));
+      dispatch(setMessages([...messages, res.data.message]));
     } catch (err) {
       console.log(err);
     }
@@ -121,39 +115,41 @@ export default function SocialNovaMessages() {
 
   const getMessages = async () => {
     try {
-      const response = await axios.get(
+      const res = await axios.get(
         `https://socialnova-backend.onrender.com/messages/${selectedUser._id}`,
         { withCredentials: true },
       );
-      dispatch(setMessages(response.data.messages || []));
+      dispatch(setMessages(res.data.messages || []));
     } catch (err) {
       console.log(err);
     }
   };
 
-  // ✅ TIME FORMAT
   const formatTime = (time) => {
     if (!time) return "";
-    const date = new Date(time);
-    return date.toLocaleTimeString([], {
+    return new Date(time).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
   };
 
   return (
-    <div className="h-screen w-screen bg-[#020617] text-white flex">
-      {/* ===== USERS LIST (MOBILE + DESKTOP) ===== */}
+    <div className="h-[100dvh] w-full bg-[#020617] text-white flex overflow-hidden">
+      {/* ===== USERS LIST ===== */}
       <div
         className={`${
           isMobileChatOpen ? "hidden" : "flex"
         } md:flex flex-col w-full md:w-[340px] border-r border-slate-800`}
       >
-        <div className="p-4 border-b border-slate-800">
+        <div className="p-4 border-b border-slate-800 flex gap-2">
+          <MdKeyboardBackspace
+            className="text-2xl text-white cursor-pointer"
+            onClick={() => navigate("/home")}
+          />
           <h2 className="text-xl font-semibold">Chats</h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
           {allUsers.map((user) => (
             <div
               key={user._id}
@@ -182,7 +178,6 @@ export default function SocialNovaMessages() {
             </div>
           ))}
         </div>
-        <BottomNavbar />
       </div>
 
       {/* ===== CHAT SECTION ===== */}
@@ -194,7 +189,6 @@ export default function SocialNovaMessages() {
         {/* HEADER */}
         <div className="flex items-center justify-between p-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
-            {/* MOBILE BACK */}
             <button
               onClick={() => setIsMobileChatOpen(false)}
               className="md:hidden p-2 bg-[#0F172A] rounded-lg"
@@ -219,20 +213,20 @@ export default function SocialNovaMessages() {
         </div>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-4">
+        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-4 pb-20 md:pb-4">
           {messages.map((msg) => (
             <div key={msg._id}>
               {msg.sender === userData?._id ? (
                 <div ref={scrollRef} className="flex gap-2 justify-end">
-                  <div className="text-right flex flex-col items-end gap-2">
-                    <div className=" rounded-xl overflow-hidden shadow-lg text-sm bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black">
+                  <div className="flex flex-col items-end gap-2 max-w-[75%] sm:max-w-[70%]">
+                    <div className="rounded-xl overflow-hidden shadow-lg text-sm bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black">
                       {msg?.message && (
                         <div className="px-4 py-2">{msg.message}</div>
                       )}
                       {msg?.image && (
                         <img
                           src={msg.image}
-                          className="max-h-[250px] max-w-[220px] sm:max-w-[260px] w-auto rounded-xl object-cover"
+                          className="max-h-[200px] sm:max-h-[250px] max-w-[220px] sm:max-w-[260px] w-auto object-cover"
                         />
                       )}
                     </div>
@@ -251,15 +245,15 @@ export default function SocialNovaMessages() {
                     src={selectedUser?.profilePicture || profileImage}
                     className="w-6 h-6 rounded-full"
                   />
-                  <div className="flex flex-col items-start gap-2">
-                    <div className=" rounded-xl overflow-hidden shadow-lg text-sm bg-[#0F172A] border border-slate-800">
+                  <div className="flex flex-col items-start gap-2 max-w-[75%] sm:max-w-[70%]">
+                    <div className="rounded-xl overflow-hidden shadow-lg text-sm bg-[#0F172A] border border-slate-800">
                       {msg?.message && (
                         <div className="px-4 py-2">{msg.message}</div>
                       )}
                       {msg?.image && (
                         <img
                           src={msg.image}
-                          className="max-h-[250px] max-w-[220px] sm:max-w-[260px] w-auto rounded-xl object-cover"
+                          className="max-h-[200px] sm:max-h-[250px] max-w-[220px] sm:max-w-[260px] w-auto object-cover"
                         />
                       )}
                     </div>
@@ -274,7 +268,7 @@ export default function SocialNovaMessages() {
         </div>
 
         {/* INPUT */}
-        <div className="p-4 w-full border-t border-slate-800 flex items-center gap-3">
+        <div className="p-3 md:p-4 border-t border-slate-800 flex items-center gap-2 md:gap-3 bg-[#020617] sticky bottom-0">
           <button
             onClick={() => fileRef.current.click()}
             className="p-2 bg-[#0F172A] rounded-xl"
@@ -292,13 +286,13 @@ export default function SocialNovaMessages() {
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="flex-1 bg-[#0F172A] px-4 py-2 rounded-xl"
+            className="flex-1 bg-[#0F172A] px-3 md:px-4 py-2 rounded-xl text-sm md:text-base"
             placeholder="Message..."
           />
 
           <button
             onClick={sendMessage}
-            className="px-4 py-2 max-md:px-3 bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black rounded-xl"
+            className="px-3 md:px-4 py-2 bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] text-black rounded-xl"
           >
             <FiSend />
           </button>
