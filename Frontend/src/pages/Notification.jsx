@@ -4,8 +4,11 @@ import BottomNavbar from "../components/BottomNavbar";
 import { useSelector } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
 import useGetAllNotifications from "../hooks/useGetAllNotifications";
+import { MdKeyboardBackspace } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 function NotificationPage() {
+  const navigate = useNavigate();
   const getIcon = (type) => {
     switch (type) {
       case "like":
@@ -26,8 +29,14 @@ function NotificationPage() {
     <div className="min-h-screen bg-[#020617] text-white p-4 ">
       <div className="max-w-xl mx-auto mb-[60px]">
         {/* Header */}
-        <h1 className="text-xl font-semibold mb-6">Notifications</h1>
-
+        <div className="flex gap-3 items-center mb-6">
+          {" "}
+          <MdKeyboardBackspace
+            className="text-2xl text-white cursor-pointer"
+            onClick={() => navigate("/home")}
+          />
+          <h1 className="text-xl font-semibold">Notifications</h1>
+        </div>
         {/* Notification List */}
         <div className="space-y-4">
           {notifications.map((n) => (

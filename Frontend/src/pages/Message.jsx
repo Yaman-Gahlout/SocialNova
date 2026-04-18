@@ -141,7 +141,7 @@ export default function SocialNovaMessages() {
           isMobileChatOpen ? "hidden" : "flex"
         } md:flex flex-col w-full md:w-[340px] border-r border-slate-800`}
       >
-        <div className="p-4 border-b border-slate-800 flex gap-2">
+        <div className="p-4 border-b border-slate-800 flex gap-2 items-center">
           <MdKeyboardBackspace
             className="text-2xl text-white cursor-pointer"
             onClick={() => navigate("/home")}

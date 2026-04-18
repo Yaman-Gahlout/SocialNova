@@ -1,5 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import profileImage from "../assets/userImage.avif";
 import { MdKeyboardBackspace } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,16 @@ function Reels() {
   const reels = postsData.filter((post) => post.mediaType === "video");
   console.log("Reels Data:", reels);
 
+  const shuffleReels = (arr) => {
+    const shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  const randomReels = shuffleReels(reels);
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entry) => {
@@ -54,8 +64,8 @@ function Reels() {
       </div>
       {/* Reels Container */}
       <div className="w-full max-w-[480px] h-screen overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
-        {reels.length > 0 &&
-          reels.map((reel) => (
+        {randomReels.length > 0 &&
+          randomReels.map((reel) => (
             <Reel
               key={reel._id}
               reel={reel}
@@ -64,7 +74,7 @@ function Reels() {
               postsData={postsData}
             />
           ))}
-        {reels.length === 0 && (
+        {randomReels.length === 0 && (
           <div className="flex flex-col items-center justify-center h-screen gap-4">
             <h2 className="text-2xl text-white">No Reels Available</h2>
             <button

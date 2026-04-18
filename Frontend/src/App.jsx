@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Main from "./pages/Main";
@@ -27,6 +27,9 @@ function App() {
   const socket = useSelector((state) => state.socket.socket);
   const notifications = useSelector((state) => state.user.notifications);
   const postsData = useSelector((state) => state.post.postsData);
+  const profileData = useSelector((state) => state.user.profileData);
+  const messages = useSelector((state) => state.message.messages);
+  const userFollowing = useSelector((state) => state.user.following);
 
   useEffect(() => {
     console.log("socket in Post.jsx: ", socket);
@@ -105,16 +108,43 @@ function App() {
 
         <Route path="/home" element={<Home />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/editProfile" element={<EditProfile />} />
+        <Route
+          path="/profile"
+          element={
+            profileData ? <Profile /> : <Navigate to={"/home"}></Navigate>
+          }
+        />
+        <Route
+          path="/editProfile"
+          element={
+            profileData ? <EditProfile /> : <Navigate to={"/home"}></Navigate>
+          }
+        />
         <Route path="/createPost" element={<CreatePost />} />
         <Route path="/upload" element={<Upload />} />
-        <Route path="/reels" element={<Reels />} />
-        <Route path="/message" element={<Message />} />
+        <Route
+          path="/reels"
+          element={postsData ? <Reels /> : <Navigate to={"/home"}></Navigate>}
+        />
+        <Route
+          path="/message"
+          element={
+            messages && userFollowing ? (
+              <Message />
+            ) : (
+              <Navigate to={"/home"}></Navigate>
+            )
+          }
+        />
 
         <Route path="/story/:username" element={<StoryViewPage />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/notifications" element={<NotificationPage />} />
+        <Route
+          path="/notifications"
+          element={
+            userData ? <NotificationPage /> : <Navigate to={"/home"}></Navigate>
+          }
+        />
       </Routes>
     </>
   );
