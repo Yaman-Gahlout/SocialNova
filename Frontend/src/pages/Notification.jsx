@@ -45,14 +45,17 @@ function NotificationPage() {
               className="flex items-center gap-4 bg-[#0F172A] border border-slate-800 p-4 rounded-xl hover:bg-[#1E293B] transition"
             >
               {/* Icon */}
-              <div className="p-2 rounded-full bg-[#020617]">
-                {getIcon(n.type)}
-              </div>
+
+              <img
+                src={n?.sender.profilePicture}
+                alt=""
+                className="h-[50px] w-[50px] object-cover rounded-full"
+              />
 
               {/* Content */}
               <div className="flex-1">
                 <p className="text-sm">
-                  <span className="font-bold text-md">
+                  <span className="font-bold text-md text-blue-500">
                     {n?.sender?.username}
                   </span>{" "}
                   {n.message}.
