@@ -365,14 +365,37 @@ function Post({ post, profileData, currentTab }) {
   );
 
   const isOwnPost = userData?._id?.toString() === post?.author?._id?.toString();
-
   async function deletePostHandler(postId) {
-    const previousPosts = postsData;
-    console.log("Deleting post with ID: ", postId);
+    // Save previous state for rollback
+    const previousProfileData = profileData;
+    const previousUserData = userData;
 
-    const updatedPosts = postsData.filter((post) => post._id !== postId);
+    // Optimistic update
+    const updatedProfilePosts = profileData.posts.filter(
+      (post) => post._id.toString() !== postId.toString(),
+    );
 
-    dispatch(setPostsData(updatedPosts));
+    dispatch(
+      setProfileData({
+        ...profileData,
+        posts: updatedProfilePosts,
+      }),
+    );
+
+    // If userData also contains posts, update it as well
+    if (userData.posts) {
+      dispatch(
+        setUserData({
+          ...userData,
+          posts: userData.posts.filter(
+            (postIdOrPost) =>
+              (postIdOrPost._id
+                ? postIdOrPost._id.toString()
+                : postIdOrPost.toString()) !== postId.toString(),
+          ),
+        }),
+      );
+    }
 
     try {
       await axios.delete(
@@ -384,10 +407,12 @@ function Post({ post, profileData, currentTab }) {
 
       toast.success("Post deleted successfully.");
     } catch (err) {
-      dispatch(setPostsData(previousPosts));
+      // Rollback
+      dispatch(setProfileData(previousProfileData));
+
+      dispatch(setUserData(previousUserData));
 
       toast.error("Failed to delete post.");
-
       console.error(err);
     }
   }
