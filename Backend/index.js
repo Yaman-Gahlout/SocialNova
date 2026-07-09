@@ -7,10 +7,11 @@ const reelRoute = require("./routes/reel.route");
 const storyRoute = require("./routes/story.route");
 const messageRoute = require("./routes/message.route");
 const cors = require("cors");
+const dns = require("dns");
 const cookieParser = require("cookie-parser");
 const { app, server } = require("./socket");
 require("dotenv").config();
-
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 const allowedOrigins = [
   "http://localhost:5173",
   "https://socialnova-6uat.onrender.com",

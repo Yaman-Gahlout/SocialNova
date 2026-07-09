@@ -1,10 +1,14 @@
 import axios from "axios";
 import React, { useState } from "react";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { MdBadge } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function Signup() {
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
     username: "",
     fullName: "",
@@ -13,7 +17,10 @@ export default function Signup() {
   });
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -30,106 +37,146 @@ export default function Signup() {
       navigate("/login");
     } catch (e) {
       console.log(e);
+      toast.error(e.response?.data?.message || "error while creating account");
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="bg-[#111827] rounded-2xl shadow-2xl p-8 border border-gray-800">
-          {/* Logo / Title */}
-          <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] bg-clip-text text-transparent">
-            SocialNova
-          </h1>
-          <p className="text-center text-gray-400 mb-6">
-            Create your account and start sharing moments
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#08111F] via-[#111827] to-[#0F172A] px-4">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+        {/* Logo */}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username */}
-            <div>
-              <label className="block text-sm mb-1 text-[#E5E7EB]">
-                Username
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={form.username}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-xl bg-[#0F172A] border border-gray-700 focus:border-[#00D4FF] focus:ring-2 focus:ring-[#00D4FF]/30 outline-none text-[#E5E7EB]"
-                placeholder="Enter username"
-              />
-            </div>
-
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm mb-1 text-[#E5E7EB]">
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="fullName"
-                value={form.fullName}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-xl bg-[#0F172A] border border-gray-700 focus:border-[#00D4FF] focus:ring-2 focus:ring-[#00D4FF]/30 outline-none text-[#E5E7EB]"
-                placeholder="Enter full name"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm mb-1 text-[#E5E7EB]">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-xl bg-[#0F172A] border border-gray-700 focus:border-[#00D4FF] focus:ring-2 focus:ring-[#00D4FF]/30 outline-none text-[#E5E7EB]"
-                placeholder="Enter email"
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm mb-1 text-[#E5E7EB]">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 rounded-xl bg-[#0F172A] border border-gray-700 focus:border-[#00D4FF] focus:ring-2 focus:ring-[#00D4FF]/30 outline-none text-[#E5E7EB]"
-                placeholder="Enter password"
-              />
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-[#6C5CE7] to-[#00D4FF] hover:scale-[1.02] active:scale-[0.98] transition"
-            >
-              Create Account
-            </button>
-          </form>
-
-          {/* Footer */}
-          <p className="text-center text-sm text-gray-400 mt-6">
-            Already have an account?{" "}
-            <span
-              onClick={() => navigate("/login")}
-              className="text-blue-500 cursor-pointer hover:underline"
-            >
-              Login
-            </span>
-          </p>
+        <div className="flex justify-center">
+          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-600 to-cyan-400 flex items-center justify-center text-3xl shadow-lg">
+            🚀
+          </div>
         </div>
+
+        {/* Heading */}
+
+        <h1 className="mt-6 text-center text-4xl font-bold bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">
+          SocialNova
+        </h1>
+
+        <p className="mt-2 text-center text-gray-400">
+          Create your account and start connecting with people.
+        </p>
+
+        {/* Form */}
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          {/* Username */}
+
+          <div className="relative">
+            <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" />
+
+            <input
+              type="text"
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              placeholder="Username"
+              required
+              className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-3 pl-12 pr-4 text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
+            />
+          </div>
+
+          {/* Full Name */}
+
+          <div className="relative">
+            <MdBadge className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-xl" />
+
+            <input
+              type="text"
+              name="fullName"
+              value={form.fullName}
+              onChange={handleChange}
+              placeholder="Full Name"
+              required
+              className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-3 pl-12 pr-4 text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
+            />
+          </div>
+
+          {/* Email */}
+
+          <div className="relative">
+            <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" />
+
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email Address"
+              required
+              className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-3 pl-12 pr-4 text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
+            />
+          </div>
+
+          {/* Password */}
+
+          <div className="relative">
+            <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" />
+
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Password"
+              required
+              className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-3 pl-12 pr-12 text-white placeholder:text-gray-500 outline-none transition-all duration-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/20"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-cyan-400"
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+
+          {/* Terms */}
+
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center gap-2 text-gray-400">
+              <input type="checkbox" className="accent-cyan-400" required />I
+              agree to Terms
+            </label>
+          </div>
+
+          {/* Button */}
+
+          <button
+            type="submit"
+            className="w-full rounded-xl bg-gradient-to-r from-violet-600 via-purple-500 to-cyan-500 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-cyan-500/30 active:scale-95"
+          >
+            Create Account
+          </button>
+        </form>
+
+        {/* Divider */}
+
+        <div className="my-6 flex items-center gap-4">
+          <div className="h-px flex-1 bg-slate-700"></div>
+
+          <span className="text-sm text-gray-500">OR</span>
+
+          <div className="h-px flex-1 bg-slate-700"></div>
+        </div>
+
+        {/* Footer */}
+
+        <p className="text-center text-gray-400">
+          Already have an account?
+          <button
+            onClick={() => navigate("/login")}
+            className="ml-2 font-semibold text-cyan-400 transition hover:text-cyan-300"
+          >
+            Login
+          </button>
+        </p>
       </div>
     </div>
   );

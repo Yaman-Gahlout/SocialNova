@@ -177,4 +177,70 @@ const savePost = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getAllPosts, likePost, commentOnPost, savePost };
+const deletePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.userId;
+
+    // Find post
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found.",
+      });
+    }
+
+    // Check ownership
+    if (post.author.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this post.",
+      });
+    }
+
+    // Remove post from author's posts array
+    await User.findByIdAndUpdate(userId, {
+      $pull: {
+        posts: postId,
+      },
+    });
+
+    // Remove post from everyone's saved posts
+    await User.updateMany(
+      {
+        savedPosts: postId,
+      },
+      {
+        $pull: {
+          savedPosts: postId,
+        },
+      },
+    );
+
+    // Delete the post
+    await Post.findByIdAndDelete(postId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Post deleted successfully.",
+    });
+  } catch (err) {
+    console.error("Delete Post Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error.",
+    });
+  }
+};
+
+module.exports = {
+  createPost,
+  getAllPosts,
+  likePost,
+  commentOnPost,
+  savePost,
+  deletePost,
+};

@@ -8,6 +8,7 @@ const userSlice = createSlice({
     profileData: null,
     following: null,
     notifications: [],
+    savedPostsData: null,
   },
   reducers: {
     setUserData: (state, action) => {
@@ -18,6 +19,9 @@ const userSlice = createSlice({
     },
     setProfileData: (state, action) => {
       state.profileData = action.payload;
+    },
+    setSavedPostsData: (state, action) => {
+      state.savedPostsData = action.payload;
     },
     setFollowing: (state, action) => {
       state.following = action.payload;
@@ -34,5 +38,6 @@ export const {
   setProfileData,
   setFollowing,
   setNotifications,
+  setSavedPostsData,
 } = userSlice.actions;
 export default userSlice.reducer;

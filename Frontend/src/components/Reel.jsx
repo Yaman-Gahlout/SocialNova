@@ -65,149 +65,233 @@ function Reel({ reel, userData, profileImage, postsData }) {
   };
 
   /* ---------------- LIKE ---------------- */
-
   async function likeHandler(postId) {
-    try {
-      const res = await axios.post(
-        `https://socialnova-backend.onrender.com/posts/like/${postId}`,
-        {},
-        { withCredentials: true },
+    const previousPosts = [...postsData];
+
+    const updatedPosts = postsData.map((post) => {
+      if (post._id !== postId) return post;
+
+      const alreadyLiked = post.likes.some(
+        (id) => id.toString() === userData._id.toString(),
       );
 
-      const message = res.data?.message || res.data;
+      return {
+        ...post,
+        likes: alreadyLiked
+          ? post.likes.filter((id) => id.toString() !== userData._id.toString())
+          : [...post.likes, userData._id],
+      };
+    });
 
-      const updatedPosts = postsData.map((post) => {
-        if (post._id !== postId) return post;
+    dispatch(setPostsData(updatedPosts));
 
-        let updatedLikes = [...post.likes];
-
-        if (message === "Post liked") {
-          updatedLikes.push(userData._id);
-        }
-
-        if (message === "Post unliked") {
-          updatedLikes = updatedLikes.filter(
-            (id) => id.toString() !== userData._id.toString(),
-          );
-        }
-
-        return { ...post, likes: updatedLikes };
-      });
-
-      dispatch(setPostsData(updatedPosts));
+    try {
+      await axios.post(
+        `https://socialnova-backend.onrender.com/posts/like/${postId}`,
+        {},
+        {
+          withCredentials: true,
+        },
+      );
     } catch (err) {
-      console.log(err);
+      dispatch(setPostsData(previousPosts));
+      toast.error("Failed to update like.");
+      console.error(err);
+    } finally {
     }
   }
 
   /* ---------------- SAVE ---------------- */
 
   async function saveHandler(postId) {
+    // Save previous state for rollback
+    const previousSavedPosts = [...userData.savedPosts];
+
+    const alreadySaved = userData.savedPosts.some(
+      (id) => id.toString() === postId.toString(),
+    );
+
+    // Optimistic update
+    const updatedSavedPosts = alreadySaved
+      ? userData.savedPosts.filter((id) => id.toString() !== postId.toString())
+      : [...userData.savedPosts, postId];
+
+    // Update UI immediately
+    dispatch(
+      setUserData({
+        ...userData,
+        savedPosts: updatedSavedPosts,
+      }),
+    );
+
     try {
-      const res = await axios.post(
+      await axios.post(
         `https://socialnova-backend.onrender.com/posts/save/${postId}`,
         {},
-        { withCredentials: true },
+        {
+          withCredentials: true,
+        },
       );
 
-      const message = res.data?.message || res.data;
-
-      let updatedSavedPosts;
-
-      if (message === "Post saved") {
-        updatedSavedPosts = [...userData.savedPosts, postId];
-        toast.success("Post saved successfully!"); // Show toast on save
+      if (alreadySaved) {
+        toast.info("Post removed from saved posts.");
+      } else {
+        toast.success("Post saved successfully!");
       }
-
-      if (message === "Post unsaved") {
-        updatedSavedPosts = userData.savedPosts.filter(
-          (id) => id.toString() !== postId.toString(),
-        );
-
-        toast.info("Post unsaved successfully!"); // Show toast on unsave
-      }
-
+    } catch (err) {
+      // Rollback on failure
       dispatch(
         setUserData({
           ...userData,
-          savedPosts: updatedSavedPosts,
+          savedPosts: previousSavedPosts,
         }),
       );
-    } catch (err) {
-      console.log(err);
+
+      toast.error("Failed to update saved posts.");
+      console.error(err);
     }
   }
 
   /* ---------------- FOLLOW ---------------- */
 
   async function followHandler(targetUserId) {
+    const previousUserData = { ...userData };
+    //const previousProfileData = { ...profileData };
+
+    const alreadyFollowing = userData.following.some(
+      (id) => id.toString() === targetUserId.toString(),
+    );
+
+    // Update current user's following list
+    const updatedFollowing = alreadyFollowing
+      ? userData.following.filter(
+          (id) => id.toString() !== targetUserId.toString(),
+        )
+      : [...userData.following, targetUserId];
+
+    // Update viewed user's followers list
+    // const updatedFollowers = alreadyFollowing
+    //   ? profileData.followers.filter(
+    //       (id) => id.toString() !== userData._id.toString(),
+    //     )
+    //   : [...profileData.followers, userData._id];
+
+    // Optimistic UI
+    dispatch(
+      setUserData({
+        ...userData,
+        following: updatedFollowing,
+      }),
+    );
+
+    // dispatch(
+    //   setProfileData({
+    //     ...profileData,
+    //     followers: updatedFollowers,
+    //   }),
+    // );
+
     try {
-      const res = await axios.post(
+      await axios.post(
         `https://socialnova-backend.onrender.com/users/follow/${targetUserId}`,
         {},
-        { withCredentials: true },
+        {
+          withCredentials: true,
+        },
       );
 
-      const message = res.data?.message || res.data;
-
-      let updatedFollowing;
-
-      if (message === "User followed") {
-        updatedFollowing = [...userData.following, targetUserId];
-      }
-
-      if (message === "User unfollowed") {
-        updatedFollowing = userData.following.filter(
-          (id) => id.toString() !== targetUserId.toString(),
-        );
-      }
-
-      dispatch(
-        setUserData({
-          ...userData,
-          following: updatedFollowing,
-        }),
-      );
+      toast.success(alreadyFollowing ? "User unfollowed." : "User followed!");
     } catch (err) {
-      console.log(err);
+      // Rollback
+      dispatch(setUserData(previousUserData));
+      //dispatch(setProfileData(previousProfileData));
+
+      toast.error("Failed to update follow status.");
+      console.error(err);
     }
   }
 
   /* ---------------- COMMENT ---------------- */
 
   async function commentHandler(postId) {
-    try {
-      if (!commentText.trim()) return;
+    const message = commentText.trim();
 
+    if (!message) return;
+
+    // Save previous state for rollback
+    const previousPosts = [...postsData];
+
+    // Temporary comment
+    const tempComment = {
+      _id: `temp-${Date.now()}`,
+      message,
+      author: {
+        _id: userData._id,
+        username: userData.username,
+        profilePicture: userData.profilePicture,
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    // Optimistic update
+    const updatedPosts = postsData.map((post) => {
+      if (post._id !== postId) return post;
+
+      return {
+        ...post,
+        comments: [...post.comments, tempComment],
+      };
+    });
+
+    dispatch(setPostsData(updatedPosts));
+
+    // Clear input immediately
+    setCommentText("");
+
+    try {
       const res = await axios.post(
         `https://socialnova-backend.onrender.com/posts/comment/${postId}`,
-        { message: commentText },
-        { withCredentials: true },
+        { message },
+        {
+          withCredentials: true,
+        },
       );
 
-      const newComment = {
-        ...res.data.comment,
-        author: {
-          _id: userData._id,
-          username: userData.username,
-          profilePicture: userData.profilePicture,
-        },
-        message: commentText,
-      };
-
-      const updatedPosts = postsData.map((post) => {
+      // Replace temporary comment with real comment
+      const finalPosts = updatedPosts.map((post) => {
         if (post._id !== postId) return post;
+
+        const comments = post.comments.map((comment) =>
+          comment._id === tempComment._id
+            ? {
+                ...res.data.comment,
+                author: {
+                  _id: userData._id,
+                  username: userData.username,
+                  profilePicture: userData.profilePicture,
+                },
+              }
+            : comment,
+        );
 
         return {
           ...post,
-          comments: [...post.comments, newComment],
+          comments,
         };
       });
 
-      dispatch(setPostsData(updatedPosts));
-      setCommentText("");
+      dispatch(setPostsData(finalPosts));
+
+      toast.success("Comment added!");
     } catch (err) {
-      console.log(err);
+      // Rollback
+      dispatch(setPostsData(previousPosts));
+
+      setCommentText(message);
+
+      toast.error("Failed to add comment.");
+
+      console.error(err);
     }
   }
 

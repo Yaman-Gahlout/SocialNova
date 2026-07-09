@@ -28,7 +28,7 @@ function Story() {
   return (
     <div>
       {" "}
-      <div className="max-w-6xl mx-auto px-4 py-3 flex gap-6 overflow-x-auto">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex gap-6 overflow-x-auto">
         <div className="relative flex flex-col items-center min-w-17.5">
           <div
             className={`w-20 h-20 rounded-full p-0.5 ${

@@ -5,34 +5,77 @@ import Post from "./Post";
 import { useNavigate } from "react-router-dom";
 import { FiGrid, FiBookmark, FiUser, FiMapPin, FiLink } from "react-icons/fi";
 import { setPostsData } from "../redux/slice/post.slice";
+import SavePost from "./SavePost";
 
 function Posts() {
   const [tab, setTab] = useState("Post");
   const profileData = useSelector((state) => state.user.profileData);
+  console.log("Profile Data in profile page : ", profileData);
   const userData = useSelector((state) => state.user.userData);
   const postsData = useSelector((state) => state.post.postsData);
-  const socket = useSelector((state) => state.socket.socket);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   return (
     <div className="mb-[60px]">
-      <div className="flex justify-center gap-12 mt-8 border-b border-slate-800">
-        <button
-          className={`flex items-center gap-2 py-3 text-slate-400 hover:text-white transition ${tab === "Post" && "text-[#00D4FF] border-b-2 border-[#00D4FF] font-medium"}`}
-          onClick={() => setTab("Post")}
-        >
-          <FiGrid /> <span className="text-sm">Posts</span>
-        </button>
+      <div className="mt-8 flex justify-center">
+        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#111827]/80 p-2 backdrop-blur-xl shadow-lg">
+          {/* Posts */}
 
-        {userData._id === profileData._id && (
           <button
-            className={`flex items-center gap-2 py-3 text-slate-400 hover:text-white transition ${tab === "Saved" && "text-[#00D4FF] border-b-2 border-[#00D4FF] font-medium"}`}
-            onClick={() => setTab("Saved")}
+            onClick={() => setTab("Post")}
+            className={`
+        relative
+        flex
+        items-center
+        gap-2
+        rounded-xl
+        px-5
+        py-3
+        text-sm
+        font-medium
+        transition-all
+        duration-300
+        ${
+          tab === "Post"
+            ? "bg-gradient-to-r from-violet-600 to-cyan-500 text-white shadow-lg"
+            : "text-slate-400 hover:bg-slate-800 hover:text-white"
+        }
+      `}
           >
-            <FiBookmark /> <span className="text-sm">Saved</span>
+            <FiGrid size={18} />
+
+            <span className="hidden sm:block">Posts</span>
           </button>
-        )}
+
+          {/* Saved */}
+
+          {userData._id === profileData._id && (
+            <button
+              onClick={() => setTab("Saved")}
+              className={`
+          relative
+          flex
+          items-center
+          gap-2
+          rounded-xl
+          px-5
+          py-3
+          text-sm
+          font-medium
+          transition-all
+          duration-300
+          ${
+            tab === "Saved"
+              ? "bg-gradient-to-r from-violet-600 to-cyan-500 text-white shadow-lg"
+              : "text-slate-400 hover:bg-slate-800 hover:text-white"
+          }
+        `}
+            >
+              <FiBookmark size={18} />
+
+              <span className="hidden sm:block">Saved</span>
+            </button>
+          )}
+        </div>
       </div>
       {tab === "Post" && profileData.posts.length === 0 ? (
         <div className="flex  justify-center items-center">
@@ -48,7 +91,12 @@ function Posts() {
           className={`flex flex-wrap gap-4 mt-8 items-center justify-center ${tab !== "Post" && "hidden"}`}
         >
           {profileData.posts.map((post) => (
-            <Post key={post._id} post={post} profileData={profileData} />
+            <Post
+              key={post._id}
+              post={post}
+              profileData={profileData}
+              currentTab={"post"}
+            />
           ))}
         </div>
       )}
@@ -63,7 +111,13 @@ function Posts() {
           className={`flex flex-wrap gap-4 mt-8 items-center justify-center ${tab !== "Saved" && "hidden"}`}
         >
           {profileData.savedPosts.map((post) => (
-            <Post key={post._id} post={post} profileData={profileData} />
+            <SavePost
+              key={post._id}
+              post={post}
+              profileData={profileData}
+              //savePostsData={savePostsData}
+              //setSavePostsData={setSavePostsData}
+            />
           ))}
         </div>
       )}

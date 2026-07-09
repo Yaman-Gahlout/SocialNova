@@ -1,13 +1,7 @@
 import React, { useState, useMemo } from "react";
 import VideoPlayer from "./VideoPlayer";
 import { FaRegHeart, FaHeart, FaRegComment, FaBookmark } from "react-icons/fa";
-import {
-  FiBookmark,
-  FiSend,
-  FiMoreHorizontal,
-  FiTrash2,
-  FiEdit2,
-} from "react-icons/fi";
+import { FiBookmark, FiSend, FiMoreHorizontal } from "react-icons/fi";
 
 import { BsFillPatchCheckFill } from "react-icons/bs";
 
@@ -27,8 +21,7 @@ import profileImage from "../assets/userImage.avif";
 
 import { formatDistanceToNow } from "date-fns";
 
-function Post({ post, profileData, currentTab }) {
-  const isSave = currentTab === "save";
+function SavePost({ post, profileData }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -51,11 +44,6 @@ function Post({ post, profileData, currentTab }) {
   const [loadingSave, setLoadingSave] = useState(false);
 
   const [loadingFollow, setLoadingFollow] = useState(false);
-  const [openMenuId, setOpenMenuId] = useState(null);
-
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const [selectedPostId, setSelectedPostId] = useState(null);
 
   /* --------------------------- DERIVED VALUES ---------------------------- */
 
@@ -88,7 +76,7 @@ function Post({ post, profileData, currentTab }) {
     const previousProfileData = profileData;
 
     // Optimistic update
-    const updatedPosts = profileData.posts.map((post) => {
+    const updatedPosts = profileData.savedPosts.map((post) => {
       if (post._id !== postId) return post;
 
       const alreadyLiked = post.likes.some(
@@ -104,10 +92,11 @@ function Post({ post, profileData, currentTab }) {
     });
 
     // Update UI immediately
+
     dispatch(
       setProfileData({
         ...profileData,
-        posts: updatedPosts,
+        savedPosts: updatedPosts,
       }),
     );
 
@@ -131,22 +120,31 @@ function Post({ post, profileData, currentTab }) {
   // ================= SAVE =================
   async function saveHandler(postId) {
     // Save previous state for rollback
-    const previousSavedPosts = userData.savedPosts;
+    const previousProfileSavedPosts = [...profileData.savedPosts];
+    const previousUserSavedPosts = [...userData.savedPosts];
 
-    const alreadySaved = userData.savedPosts.some(
-      (id) => id.toString() === postId.toString(),
+    // Remove post immediately from Saved Posts page
+    const updatedProfileSavedPosts = profileData.savedPosts.filter(
+      (post) => post._id.toString() !== postId.toString(),
     );
 
-    // Optimistic update
-    const updatedSavedPosts = alreadySaved
-      ? userData.savedPosts.filter((id) => id.toString() !== postId.toString())
-      : [...userData.savedPosts, postId];
+    // Remove ID from current user
+    const updatedUserSavedPosts = userData.savedPosts.filter(
+      (id) => id.toString() !== postId.toString(),
+    );
 
     // Update UI immediately
     dispatch(
+      setProfileData({
+        ...profileData,
+        savedPosts: updatedProfileSavedPosts,
+      }),
+    );
+
+    dispatch(
       setUserData({
         ...userData,
-        savedPosts: updatedSavedPosts,
+        savedPosts: updatedUserSavedPosts,
       }),
     );
 
@@ -159,17 +157,20 @@ function Post({ post, profileData, currentTab }) {
         },
       );
 
-      if (alreadySaved) {
-        toast.info("Post removed from saved posts.");
-      } else {
-        toast.success("Post saved successfully!");
-      }
+      toast.info("Post removed from saved posts.");
     } catch (err) {
       // Rollback
       dispatch(
+        setProfileData({
+          ...profileData,
+          savedPosts: previousProfileSavedPosts,
+        }),
+      );
+
+      dispatch(
         setUserData({
           ...userData,
-          savedPosts: previousSavedPosts,
+          savedPosts: previousUserSavedPosts,
         }),
       );
 
@@ -184,10 +185,6 @@ function Post({ post, profileData, currentTab }) {
 
     if (!message) return;
 
-    // Save previous state for rollback
-    const previousPosts = profileData.posts;
-
-    // Temporary comment
     const tempComment = {
       _id: `temp-${Date.now()}`,
       message,
@@ -196,11 +193,14 @@ function Post({ post, profileData, currentTab }) {
         username: userData.username,
         profilePicture: userData.profilePicture,
       },
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     };
 
+    // Save previous state for rollback
+    const previousSavedPosts = [...profileData.savedPosts];
+
     // Optimistic update
-    const updatedPosts = profileData.posts.map((post) => {
+    const updatedSavedPosts = profileData.savedPosts.map((post) => {
       if (post._id !== postId) return post;
 
       return {
@@ -212,7 +212,7 @@ function Post({ post, profileData, currentTab }) {
     dispatch(
       setProfileData({
         ...profileData,
-        posts: updatedPosts,
+        savedPosts: updatedSavedPosts,
       }),
     );
 
@@ -231,31 +231,35 @@ function Post({ post, profileData, currentTab }) {
         },
       );
 
-      // Replace temporary comment with real comment
-      const finalPosts = updatedPosts.map((post) => {
+      // Replace temp comment with real comment
+      const finalSavedPosts = updatedSavedPosts.map((post) => {
         if (post._id !== postId) return post;
+
+        const comments = [...post.comments];
+
+        const index = comments.findIndex((c) => c._id === tempComment._id);
+
+        if (index !== -1) {
+          comments[index] = {
+            ...res.data.comment,
+            author: {
+              _id: userData._id,
+              username: userData.username,
+              profilePicture: userData.profilePicture,
+            },
+          };
+        }
 
         return {
           ...post,
-          comments: post.comments.map((comment) =>
-            comment._id === tempComment._id
-              ? {
-                  ...res.data.comment,
-                  author: {
-                    _id: userData._id,
-                    username: userData.username,
-                    profilePicture: userData.profilePicture,
-                  },
-                }
-              : comment,
-          ),
+          comments,
         };
       });
 
       dispatch(
         setProfileData({
           ...profileData,
-          posts: finalPosts,
+          savedPosts: finalSavedPosts,
         }),
       );
 
@@ -265,15 +269,9 @@ function Post({ post, profileData, currentTab }) {
       dispatch(
         setProfileData({
           ...profileData,
-          posts: previousPosts,
+          savedPosts: previousSavedPosts,
         }),
       );
-
-      // Restore input
-      setCommentText((prev) => ({
-        ...prev,
-        [postId]: message,
-      }));
 
       toast.error("Failed to add comment.");
       console.error(err);
@@ -282,39 +280,33 @@ function Post({ post, profileData, currentTab }) {
 
   async function followHandler(targetUserId) {
     // Save previous state for rollback
-    const previousFollowing = userData.following;
-    const previousFollowers = profileData.followers;
+    const previousProfileFollowing = [...profileData.following];
+    const previousUserFollowing = [...userData.following];
 
     const alreadyFollowing = userData.following.some(
       (id) => id.toString() === targetUserId.toString(),
     );
 
-    // Update current user's following
+    // Optimistic update
     const updatedFollowing = alreadyFollowing
       ? userData.following.filter(
           (id) => id.toString() !== targetUserId.toString(),
         )
       : [...userData.following, targetUserId];
 
-    // Update viewed user's followers
-    const updatedFollowers = alreadyFollowing
-      ? profileData.followers.filter(
-          (id) => id.toString() !== userData._id.toString(),
-        )
-      : [...profileData.followers, userData._id];
-
-    // Optimistic UI
+    // Update Profile Data
     dispatch(
-      setUserData({
-        ...userData,
+      setProfileData({
+        ...profileData,
         following: updatedFollowing,
       }),
     );
 
+    // Update Current User Data
     dispatch(
-      setProfileData({
-        ...profileData,
-        followers: updatedFollowers,
+      setUserData({
+        ...userData,
+        following: updatedFollowing,
       }),
     );
 
@@ -333,18 +325,19 @@ function Post({ post, profileData, currentTab }) {
         toast.success("User followed!");
       }
     } catch (err) {
-      // Rollback
-      dispatch(
-        setUserData({
-          ...userData,
-          following: previousFollowing,
-        }),
-      );
-
+      // Rollback Profile Data
       dispatch(
         setProfileData({
           ...profileData,
-          followers: previousFollowers,
+          following: previousProfileFollowing,
+        }),
+      );
+
+      // Rollback User Data
+      dispatch(
+        setUserData({
+          ...userData,
+          following: previousUserFollowing,
         }),
       );
 
@@ -352,6 +345,7 @@ function Post({ post, profileData, currentTab }) {
       console.error(err);
     }
   }
+
   const isLiked = post?.likes?.some(
     (id) => id.toString() === profileData?._id?.toString(),
   );
@@ -366,31 +360,6 @@ function Post({ post, profileData, currentTab }) {
 
   const isOwnPost = userData?._id?.toString() === post?.author?._id?.toString();
 
-  async function deletePostHandler(postId) {
-    const previousPosts = postsData;
-    console.log("Deleting post with ID: ", postId);
-
-    const updatedPosts = postsData.filter((post) => post._id !== postId);
-
-    dispatch(setPostsData(updatedPosts));
-
-    try {
-      await axios.delete(
-        `https://socialnova-backend.onrender.com/posts/${postId}`,
-        {
-          withCredentials: true,
-        },
-      );
-
-      toast.success("Post deleted successfully.");
-    } catch (err) {
-      dispatch(setPostsData(previousPosts));
-
-      toast.error("Failed to delete post.");
-
-      console.error(err);
-    }
-  }
   return (
     <div
       key={post._id}
@@ -430,8 +399,8 @@ function Post({ post, profileData, currentTab }) {
           >
             <img
               src={
-                post.author.profilePicture
-                  ? post.author.profilePicture
+                post.author?.profilePicture
+                  ? post.author?.profilePicture
                   : profileImage
               }
               alt=""
@@ -451,7 +420,7 @@ function Post({ post, profileData, currentTab }) {
           <div>
             <div className="flex items-center gap-2">
               <p
-                onClick={() => clickHandler(post.author.username)}
+                onClick={() => clickHandler(post.author?.username)}
                 className="
               font-semibold
               cursor-pointer
@@ -459,16 +428,17 @@ function Post({ post, profileData, currentTab }) {
               transition
               "
               >
-                {post.author.username}
+                {post.author?.username}
               </p>
 
               <BsFillPatchCheckFill className="text-cyan-400" size={14} />
             </div>
 
             <p className="text-xs text-slate-400">
-              {formatDistanceToNow(new Date(post.createdAt), {
-                addSuffix: true,
-              })}
+              {post?.createdAt &&
+                formatDistanceToNow(new Date(post?.createdAt), {
+                  addSuffix: true,
+                })}
             </p>
           </div>
         </div>
@@ -479,7 +449,7 @@ function Post({ post, profileData, currentTab }) {
           {!isOwnPost && (
             <button
               disabled={loadingFollow}
-              onClick={() => followHandler(post.author._id)}
+              onClick={() => followHandler(post.author?._id)}
               className={`
             px-4
             py-2
@@ -496,181 +466,6 @@ function Post({ post, profileData, currentTab }) {
             >
               {isFollowing ? "Following" : "Follow"}
             </button>
-          )}
-
-          {isOwnPost && (
-            <div className="relative">
-              <button
-                onClick={() =>
-                  setOpenMenuId(openMenuId === post._id ? null : post._id)
-                }
-                className="
-      p-2
-      rounded-full
-      hover:bg-slate-700
-      transition
-      "
-              >
-                <FiMoreHorizontal size={22} />
-              </button>
-
-              {openMenuId === post._id && (
-                <div
-                  className="
-        absolute
-        right-0
-        top-12
-        w-48
-        rounded-2xl
-        border
-        border-white/10
-        bg-[#111827]
-        shadow-2xl
-        overflow-hidden
-        z-50
-        "
-                >
-                  <button
-                    className="
-          w-full
-          flex
-          items-center
-          gap-3
-          px-4
-          py-3
-          hover:bg-slate-800
-          transition
-          "
-                  >
-                    <FiEdit2 size={18} />
-                    Edit Post
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setOpenMenuId(null);
-                      setSelectedPostId(post._id);
-                      setShowDeleteModal(true);
-                    }}
-                    className="
-          w-full
-          flex
-          items-center
-          gap-3
-          px-4
-          py-3
-          text-red-400
-          hover:bg-red-500/10
-          transition
-          "
-                  >
-                    <FiTrash2 size={18} />
-                    Delete Post
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {showDeleteModal && (
-            <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-              <div
-                className="
-      w-[90%]
-      max-w-md
-      rounded-3xl
-      border
-      border-white/10
-      bg-[#111827]
-      p-6
-      shadow-2xl
-      animate-in
-      fade-in
-      zoom-in-95
-      duration-200
-      "
-              >
-                {/* Icon */}
-
-                <div className="flex justify-center">
-                  <div
-                    className="
-          h-16
-          w-16
-          rounded-full
-          bg-red-500/10
-          flex
-          items-center
-          justify-center
-          "
-                  >
-                    <FiTrash2 size={30} className="text-red-500" />
-                  </div>
-                </div>
-
-                {/* Title */}
-
-                <h2 className="mt-5 text-center text-2xl font-bold">
-                  Delete Post?
-                </h2>
-
-                {/* Description */}
-
-                <p className="mt-3 text-center text-slate-400 leading-7">
-                  This action cannot be undone.
-                  <br />
-                  Are you sure you want to permanently delete this post?
-                </p>
-
-                {/* Buttons */}
-
-                <div className="mt-8 flex gap-4">
-                  <button
-                    onClick={() => {
-                      setShowDeleteModal(false);
-                      setSelectedPostId(null);
-                    }}
-                    className="
-          flex-1
-          rounded-xl
-          border
-          border-slate-600
-          py-3
-          font-medium
-          hover:bg-slate-800
-          transition
-          "
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      deletePostHandler(selectedPostId);
-
-                      setShowDeleteModal(false);
-
-                      setSelectedPostId(null);
-                    }}
-                    className="
-          flex-1
-          rounded-xl
-          bg-gradient-to-r
-          from-red-500
-          to-red-600
-          py-3
-          font-semibold
-          text-white
-          hover:scale-[1.02]
-          active:scale-95
-          transition
-          "
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
           )}
         </div>
       </div>
@@ -690,11 +485,11 @@ function Post({ post, profileData, currentTab }) {
       >
         {post.mediaType === "image" ? (
           <img
-            src={post.media}
+            src={post?.media}
             alt=""
             loading="lazy"
             onLoad={() => setImageLoaded(true)}
-            onDoubleClick={() => likeHandler(post._id)}
+            onDoubleClick={() => likeHandler(post?._id)}
             className="
           w-full
           max-h-[80vh]
@@ -707,7 +502,7 @@ function Post({ post, profileData, currentTab }) {
           />
         ) : (
           <VideoPlayer
-            source={post.media}
+            source={post?.media}
             className="
           w-full
           max-h-[80vh]
@@ -723,10 +518,10 @@ function Post({ post, profileData, currentTab }) {
       <div className="px-5 pt-4 pb-2">
         <p className="text-slate-300 leading-7">
           <span className="font-semibold text-white mr-2">
-            {post.author.username}
+            {post.author?.username}
           </span>
 
-          {post.caption}
+          {post?.caption}
         </p>
       </div>
 
@@ -743,7 +538,7 @@ function Post({ post, profileData, currentTab }) {
 
             <button
               disabled={loadingLike}
-              onClick={() => likeHandler(post._id)}
+              onClick={() => likeHandler(post?._id)}
               className="
         flex
         items-center
@@ -776,13 +571,13 @@ function Post({ post, profileData, currentTab }) {
                 />
               )}
 
-              <span className="text-sm font-medium">{post.likes.length}</span>
+              <span className="text-sm font-medium">{post.likes?.length}</span>
             </button>
 
             {/* 💬 Comment */}
 
             <button
-              onClick={() => toggleComments(post._id)}
+              onClick={() => toggleComments(post?._id)}
               className="
         flex
         items-center
@@ -801,7 +596,7 @@ function Post({ post, profileData, currentTab }) {
               />
 
               <span className="text-sm font-medium">
-                {post.comments.length}
+                {post.comments?.length}
               </span>
             </button>
 
@@ -860,16 +655,16 @@ function Post({ post, profileData, currentTab }) {
         {/* Likes */}
 
         <p className="mt-4 text-sm font-semibold text-white">
-          {post.likes.length}
+          {post.likes?.length}
 
-          {post.likes.length === 1 ? " Like" : " Likes"}
+          {post.likes?.length === 1 ? " Like" : " Likes"}
         </p>
 
         {/* View Comments */}
 
-        {post.comments.length > 0 && (
+        {post.comments?.length > 0 && (
           <button
-            onClick={() => toggleComments(post._id)}
+            onClick={() => toggleComments(post?._id)}
             className="
       mt-3
       text-sm
@@ -880,7 +675,7 @@ function Post({ post, profileData, currentTab }) {
           >
             {openComments[post._id]
               ? "Hide comments"
-              : `View all ${post.comments.length} comments`}
+              : `View all ${post.comments?.length} comments`}
           </button>
         )}
       </div>
@@ -907,10 +702,10 @@ function Post({ post, profileData, currentTab }) {
                     <img
                       src={
                         c?.author?.profilePicture
-                          ? c.author.profilePicture
+                          ? c.author?.profilePicture
                           : profileImage
                       }
-                      onClick={() => clickHandler(c.author.username)}
+                      onClick={() => clickHandler(c.author?.username)}
                       className="
                 h-9
                 w-9
@@ -937,7 +732,7 @@ function Post({ post, profileData, currentTab }) {
                   "
                       >
                         <p
-                          onClick={() => clickHandler(c.author.username)}
+                          onClick={() => clickHandler(c.author?.username)}
                           className="
                     font-semibold
                     text-white
@@ -946,11 +741,11 @@ function Post({ post, profileData, currentTab }) {
                     transition
                     "
                         >
-                          {c.author.username}
+                          {c.author?.username}
                         </p>
 
                         <p className="text-slate-300 break-words mt-1">
-                          {c.message}
+                          {c?.message}
                         </p>
                       </div>
                     </div>
@@ -965,8 +760,8 @@ function Post({ post, profileData, currentTab }) {
             <div className="flex items-center gap-3">
               <img
                 src={
-                  userData.profilePicture
-                    ? userData.profilePicture
+                  userData?.profilePicture
+                    ? userData?.profilePicture
                     : profileImage
                 }
                 className="
@@ -1008,7 +803,7 @@ function Post({ post, profileData, currentTab }) {
               />
 
               <button
-                onClick={() => commentHandler(post._id)}
+                onClick={() => commentHandler(post?._id)}
                 className="
           h-11
           w-11
@@ -1034,4 +829,4 @@ function Post({ post, profileData, currentTab }) {
   );
 }
 
-export default Post;
+export default SavePost;

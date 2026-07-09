@@ -26,10 +26,19 @@ export default function SocialNovaDashboard() {
     <div className="min-h-screen bg-[#020617] text-white pb-20">
       <Navbar />
       <Story />
-      <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {!Currloading && !allPostsLoading && <Feed />}
-        <div className="lg:col-span-4 hidden lg:block">
-          {!loading && <SuggestedUsers />}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Feed */}
+
+          <div className="col-span-12 lg:col-span-8">
+            {!Currloading && !allPostsLoading && <Feed />}
+          </div>
+
+          {/* Suggestions */}
+
+          <div className="hidden lg:block lg:col-span-4">
+            {!loading && <SuggestedUsers />}
+          </div>
         </div>
       </div>
       <BottomNavbar />
