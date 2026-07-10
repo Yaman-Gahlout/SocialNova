@@ -185,10 +185,21 @@ function StoryViewPage() {
 
         {/* VIEWERS PANEL */}
         {showViewers && (
-          <div className="absolute bottom-0 w-full bg-[#020617] p-4 max-h-[50%] overflow-y-auto">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="absolute bottom-0 w-full bg-[#020617] p-4 max-h-[50%] overflow-y-auto"
+          >
             <div className="flex justify-between items-center mb-4 text-white">
               <h3 className="font-semibold">Story Viewers</h3>
-              <button onClick={() => setShowViewers(false)}> ✕</button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowViewers(false);
+                }}
+              >
+                {" "}
+                ✕
+              </button>
             </div>
 
             {story.viewers?.length === 0 && (

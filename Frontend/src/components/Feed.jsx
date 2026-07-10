@@ -510,7 +510,7 @@ function Feed() {
         return (
           <article
             className="
-w-full
+w-[96%]
 overflow-hidden
 rounded-3xl
 border
