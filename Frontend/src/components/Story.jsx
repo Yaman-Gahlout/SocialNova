@@ -20,9 +20,7 @@ function Story() {
     );
     if (!stories || stories.length === 0) return true;
 
-    return stories.every((story) =>
-      story.viewers?.some((viewer) => viewer._id === userData?._id),
-    );
+    return stories.every((story) => story.viewers?.includes(userData?._id));
   };
 
   return (
